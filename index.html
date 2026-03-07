@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Graphing Coach | Version 1</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <h1>Graphing Coach</h1>
+      <p>
+        Start with the data, choose the best graph type, decide what belongs on each axis,
+        and then build the graph interactively.
+      </p>
+      <nav class="top-nav">
+        <a class="nav-btn current" href="index.html">Version 1</a>
+        <a class="nav-btn" href="version2.html">Version 2</a>
+      </nav>
+    </header>
+
+    <main class="layout">
+      <section class="panel left-panel">
+        <h2>Choose a Dataset</h2>
+        <div id="datasetButtons" class="dataset-buttons"></div>
+
+        <div class="card">
+          <h3 id="datasetTitle">Dataset</h3>
+          <p id="datasetPrompt" class="muted"></p>
+          <div class="table-wrap">
+            <table id="dataTable"></table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Step 1: Choose the Graph Type</h3>
+          <div id="graphTypeChoices" class="choice-group"></div>
+        </div>
+
+        <div class="card">
+          <h3>Step 2: Choose the X-Axis</h3>
+          <div id="xAxisChoices" class="choice-group"></div>
+        </div>
+
+        <div class="card">
+          <h3>Step 3: Choose the Y-Axis</h3>
+          <div id="yAxisChoices" class="choice-group"></div>
+        </div>
+
+        <div class="card">
+          <h3>Feedback</h3>
+          <div id="feedback" class="feedback">Select a dataset to begin.</div>
+        </div>
+      </section>
+
+      <section class="panel right-panel">
+        <div class="card">
+          <h2>Interactive Graph Builder</h2>
+          <p class="muted" id="graphInstructions">
+            Complete Steps 1–3 correctly, then click inside the graph area to build your graph.
+          </p>
+
+          <div class="graph-actions">
+            <button id="checkGraphBtn" class="action-btn">Check Graph</button>
+            <button id="resetGraphBtn" class="action-btn secondary">Reset Graph</button>
+          </div>
+
+          <div class="svg-wrap">
+            <svg id="graphSvg" viewBox="0 0 700 420" aria-label="Interactive graph area"></svg>
+          </div>
+
+          <div class="mini-card">
+            <h4>How to Build</h4>
+            <ul id="howToList"></ul>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
