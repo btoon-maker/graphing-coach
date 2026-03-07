@@ -1,88 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Graphing Coach</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Graphing Coach | Guided Practice</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
+  <div class="page">
+    <header class="hero">
+      <h1>Graphing Coach</h1>
+      <p>
+        Start with the data, choose the best graph type, decide what belongs on each axis,
+        and then build the graph interactively.
+      </p>
 
-<div class="page">
+      <nav class="top-nav">
+        <a class="nav-btn current" href="index.html">Guided Practice</a>
+        <a class="nav-btn" href="version2.html">Independent Practice</a>
+      </nav>
+    </header>
 
-<header class="hero">
-<h1>Graphing Coach</h1>
-<p>Start with the data, choose the best graph type, decide what belongs on each axis, and then build the graph interactively.</p>
+    <main class="layout">
+      <section class="panel left-panel">
+        <h2>Choose a Dataset</h2>
+        <div id="datasetButtons" class="dataset-buttons"></div>
 
-<nav class="top-nav">
-<a class="nav-btn current" href="index.html">Version 1</a>
-<a class="nav-btn" href="version2.html">Version 2</a>
-</nav>
-</header>
+        <div class="card">
+          <h3 id="datasetTitle">Dataset</h3>
+          <p id="datasetPrompt" class="muted"></p>
+          <div class="table-wrap">
+            <table id="dataTable"></table>
+          </div>
+        </div>
 
-<main class="layout">
+        <div class="card">
+          <h3>Step 1: Choose the Graph Type</h3>
+          <div id="graphTypeChoices" class="choice-group"></div>
+        </div>
 
-<section class="panel">
+        <div class="card">
+          <h3>Step 2: Choose the X-Axis</h3>
+          <div id="xAxisChoices" class="choice-group"></div>
+        </div>
 
-<h2>Choose a Dataset</h2>
-<div id="datasetButtons" class="dataset-buttons"></div>
+        <div class="card">
+          <h3>Step 3: Choose the Y-Axis</h3>
+          <div id="yAxisChoices" class="choice-group"></div>
+        </div>
 
-<div class="card">
-<h3 id="datasetTitle"></h3>
-<p id="datasetPrompt" class="muted"></p>
-<table id="dataTable"></table>
-</div>
+        <div class="card">
+          <h3>Feedback</h3>
+          <div id="feedback" class="feedback">Select a dataset to begin.</div>
+        </div>
+      </section>
 
-<div class="card">
-<h3>Step 1: Choose the Graph Type</h3>
-<div id="graphTypeChoices"></div>
-</div>
+      <section class="panel right-panel">
+        <div class="card">
+          <h2>Interactive Graph Builder</h2>
+          <p class="muted" id="graphInstructions">
+            Complete Step 1 correctly to reveal the graph frame. Then complete Steps 2–3 correctly
+            and build the graph.
+          </p>
 
-<div class="card">
-<h3>Step 2: Choose the X-Axis</h3>
-<div id="xAxisChoices"></div>
-</div>
+          <div class="graph-actions">
+            <button id="checkGraphBtn" class="action-btn">Check Graph</button>
+            <button id="resetGraphBtn" class="action-btn secondary">Reset Graph</button>
+          </div>
 
-<div class="card">
-<h3>Step 3: Choose the Y-Axis</h3>
-<div id="yAxisChoices"></div>
-</div>
+          <div class="svg-wrap">
+            <svg id="graphSvg" viewBox="0 0 700 420" aria-label="Interactive graph area"></svg>
+          </div>
 
-<div class="card">
-<h3>Feedback</h3>
-<div id="feedback"></div>
-</div>
+          <div class="mini-card">
+            <h4>How to Build</h4>
+            <ul id="howToList"></ul>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
 
-</section>
-
-
-<section class="panel">
-
-<div class="card">
-
-<h2>Interactive Graph Builder</h2>
-
-<button id="checkGraphBtn">Check Graph</button>
-<button id="resetGraphBtn">Reset Graph</button>
-
-<div class="svg-wrap">
-<svg id="graphSvg" viewBox="0 0 700 420"></svg>
-</div>
-
-<div>
-<h4>How to Build</h4>
-<ul id="howToList"></ul>
-</div>
-
-</div>
-
-</section>
-
-</main>
-</div>
-
-<script src="script.js"></script>
-
+  <script src="script.js"></script>
 </body>
 </html>
