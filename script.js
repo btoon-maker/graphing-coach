@@ -1,4 +1,6 @@
-const datasets = {
+const graphTypeOptions = ["Bar Graph", "Line Graph", "Scatter Plot"];
+
+const datasetTemplates = {
   bar1: {
     id: "bar1",
     title: "Dataset 1",
@@ -8,12 +10,7 @@ const datasets = {
     xVar: "Fertilizer Type",
     yVar: "Average Plant Height (cm)",
     headers: ["Fertilizer Type", "Average Plant Height (cm)"],
-    rows: [
-      ["Fertilizer A", "14"],
-      ["Fertilizer B", "19"],
-      ["Fertilizer C", "11"],
-      ["Fertilizer D", "16"]
-    ],
+    categories: ["Fertilizer A", "Fertilizer B", "Fertilizer C", "Fertilizer D"],
     buildSteps: [
       "Choose the best graph type.",
       "Put the categories on the x-axis.",
@@ -24,8 +21,6 @@ const datasets = {
       "This is a bar graph because the x-axis shows categories: Fertilizer A, B, C, and D. The y-axis shows a measured value: average plant height in centimeters. Bar graphs are used to compare groups or categories.",
     graph: {
       kind: "bar",
-      categories: ["Fertilizer A", "Fertilizer B", "Fertilizer C", "Fertilizer D"],
-      values: [14, 19, 11, 16],
       yMin: 0,
       yMax: 20,
       yStep: 5
@@ -41,13 +36,7 @@ const datasets = {
     xVar: "Time (min)",
     yVar: "Water Temperature (°C)",
     headers: ["Time (min)", "Water Temperature (°C)"],
-    rows: [
-      ["0", "90"],
-      ["2", "81"],
-      ["4", "73"],
-      ["6", "66"],
-      ["8", "60"]
-    ],
+    xValues: [0, 2, 4, 6, 8],
     buildSteps: [
       "Choose the best graph type.",
       "Put the continuous variable on the x-axis.",
@@ -58,13 +47,6 @@ const datasets = {
       "This is a line graph because time is a continuous variable on the x-axis, and water temperature changes over time. The plotted points are connected to show a trend or pattern of change.",
     graph: {
       kind: "line",
-      points: [
-        { x: 0, y: 90 },
-        { x: 2, y: 81 },
-        { x: 4, y: 73 },
-        { x: 6, y: 66 },
-        { x: 8, y: 60 }
-      ],
       xMin: 0,
       xMax: 8,
       xStep: 2,
@@ -83,13 +65,7 @@ const datasets = {
     xVar: "Ramp Height (cm)",
     yVar: "Distance Traveled (cm)",
     headers: ["Ramp Height (cm)", "Distance Traveled (cm)"],
-    rows: [
-      ["10", "48"],
-      ["15", "70"],
-      ["20", "92"],
-      ["25", "113"],
-      ["30", "138"]
-    ],
+    xValues: [10, 15, 20, 25, 30],
     buildSteps: [
       "Choose the best graph type.",
       "Put the first numerical variable on the x-axis.",
@@ -100,13 +76,6 @@ const datasets = {
       "This is a scatter plot because both variables are numerical. Ramp height and distance traveled are measured values, so plotting the points helps show whether a relationship exists between them.",
     graph: {
       kind: "scatter",
-      points: [
-        { x: 10, y: 48 },
-        { x: 15, y: 70 },
-        { x: 20, y: 92 },
-        { x: 25, y: 113 },
-        { x: 30, y: 138 }
-      ],
       xMin: 0,
       xMax: 30,
       xStep: 5,
@@ -117,7 +86,106 @@ const datasets = {
   }
 };
 
-const graphTypeOptions = ["Bar Graph", "Line Graph", "Scatter Plot"];
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function generateBarValues() {
+  const values = [];
+  while (values.length < 4) {
+    const candidate = randomInt(10, 19);
+    values.push(candidate);
+  }
+  return values;
+}
+
+function generateLinePoints() {
+  const xValues = datasetTemplates.line1.xValues;
+  const start = randomInt(86, 96);
+  const drops = [
+    randomInt(7, 11),
+    randomInt(6, 10),
+    randomInt(5, 9),
+    randomInt(4, 8)
+  ];
+
+  const yValues = [start];
+  for (let i = 0; i < drops.length; i++) {
+    yValues.push(yValues[i] - drops[i]);
+  }
+
+  // Keep values sensible and within the graph scale.
+  for (let i = 0; i < yValues.length; i++) {
+    yValues[i] = Math.max(40, Math.min(98, yValues[i]));
+  }
+
+  return xValues.map((x, index) => ({ x, y: yValues[index] }));
+}
+
+function generateScatterPoints() {
+  const xValues = datasetTemplates.scatter1.xValues;
+  const points = [];
+
+  let currentY = randomInt(42, 56);
+  points.push({ x: xValues[0], y: currentY });
+
+  for (let i = 1; i < xValues.length; i++) {
+    currentY += randomInt(16, 24);
+    currentY = Math.min(currentY, 145);
+    points.push({ x: xValues[i], y: currentY });
+  }
+
+  return points;
+}
+
+function buildDatasetFromTemplate(templateKey) {
+  const template = datasetTemplates[templateKey];
+
+  if (templateKey === "bar1") {
+    const values = generateBarValues();
+    return {
+      ...template,
+      rows: template.categories.map((category, index) => [category, String(values[index])]),
+      graph: {
+        ...template.graph,
+        categories: [...template.categories],
+        values
+      }
+    };
+  }
+
+  if (templateKey === "line1") {
+    const points = generateLinePoints();
+    return {
+      ...template,
+      rows: points.map(point => [String(point.x), String(point.y)]),
+      graph: {
+        ...template.graph,
+        points
+      }
+    };
+  }
+
+  if (templateKey === "scatter1") {
+    const points = generateScatterPoints();
+    return {
+      ...template,
+      rows: points.map(point => [String(point.x), String(point.y)]),
+      graph: {
+        ...template.graph,
+        points
+      }
+    };
+  }
+
+  return null;
+}
+
+let datasets = {
+  bar1: buildDatasetFromTemplate("bar1"),
+  line1: buildDatasetFromTemplate("line1"),
+  scatter1: buildDatasetFromTemplate("scatter1")
+};
 
 const svg = document.getElementById("graphSvg");
 const datasetButtons = document.getElementById("datasetButtons");
@@ -131,6 +199,7 @@ const feedback = document.getElementById("feedback");
 const howToList = document.getElementById("howToList");
 const checkGraphBtn = document.getElementById("checkGraphBtn");
 const resetGraphBtn = document.getElementById("resetGraphBtn");
+const generateDatasetBtn = document.getElementById("generateDatasetBtn");
 const explanationText = document.getElementById("explanationText");
 
 const svgNS = "http://www.w3.org/2000/svg";
@@ -164,6 +233,11 @@ function showExplanation(ds) {
   explanationText.textContent = ds.explanation;
 }
 
+function clearFeedback() {
+  feedback.textContent = "";
+  feedback.className = "feedback";
+}
+
 function setFeedback(message, type = "") {
   feedback.textContent = message;
   feedback.className = `feedback ${type}`.trim();
@@ -175,6 +249,7 @@ function initDatasetButtons() {
     const btn = document.createElement("button");
     btn.className = `dataset-btn ${ds.id === currentKey ? "active" : ""}`;
     btn.textContent = ds.title;
+    btn.type = "button";
     btn.addEventListener("click", () => {
       currentKey = ds.id;
       loadDataset();
@@ -185,6 +260,7 @@ function initDatasetButtons() {
 
 function renderTable(ds) {
   dataTable.innerHTML = "";
+
   const thead = document.createElement("thead");
   const headRow = document.createElement("tr");
 
@@ -227,6 +303,7 @@ function renderChoiceButtons(container, options, selectedValue, handler) {
     const btn = document.createElement("button");
     btn.className = `choice-btn ${selectedValue === option ? "active" : ""}`;
     btn.textContent = option;
+    btn.type = "button";
     btn.addEventListener("click", () => handler(option));
     container.appendChild(btn);
   });
@@ -400,7 +477,15 @@ function drawBaseAxes(ds) {
   }
 
   if (axesAreCorrect(ds)) {
-    drawText(plotArea.left + plotArea.width - 10, plotArea.top + plotArea.height + 35, ds.xVar, 14, "bold", "#334155", "end");
+    drawText(
+      plotArea.left + plotArea.width - 10,
+      plotArea.top + plotArea.height + 35,
+      ds.xVar,
+      14,
+      "bold",
+      "#334155",
+      "end"
+    );
 
     const yLabel = createSvgElement("text", {
       x: 28,
@@ -550,6 +635,22 @@ function loadDataset() {
   datasetTitle.textContent = ds.title;
   datasetPrompt.textContent = ds.prompt;
   setFeedback("Use the data table to decide the graph type first.", "");
+}
+
+function regenerateCurrentDataset() {
+  datasets[currentKey] = buildDatasetFromTemplate(currentKey);
+  const ds = datasets[currentKey];
+
+  resetState();
+  initDatasetButtons();
+  renderTable(ds);
+  renderBuildSteps(ds);
+  renderAllChoices(ds);
+  redrawGraph();
+  resetExplanation();
+  datasetTitle.textContent = ds.title;
+  datasetPrompt.textContent = ds.prompt;
+  clearFeedback();
 }
 
 function getClickCoordinates(evt) {
@@ -702,6 +803,10 @@ resetGraphBtn.addEventListener("click", () => {
   } else {
     setFeedback("Graph reset. Choose the graph type first.", "");
   }
+});
+
+generateDatasetBtn.addEventListener("click", () => {
+  regenerateCurrentDataset();
 });
 
 loadDataset();
