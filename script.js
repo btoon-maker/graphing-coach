@@ -1,0 +1,595 @@
+const datasets = {
+  bar1: {
+    id: "bar1",
+    title: "Dataset 1",
+    prompt: "Look at the data table. Which graph type fits best, and how should it be built?",
+    graphType: "Bar Graph",
+    variables: ["Fertilizer Type", "Average Plant Height (cm)"],
+    xVar: "Fertilizer Type",
+    yVar: "Average Plant Height (cm)",
+    headers: ["Fertilizer Type", "Average Plant Height (cm)"],
+    rows: [
+      ["Fertilizer A", "14"],
+      ["Fertilizer B", "19"],
+      ["Fertilizer C", "11"],
+      ["Fertilizer D", "16"]
+    ],
+    buildSteps: [
+      "Choose the best graph type.",
+      "Put the categories on the x-axis.",
+      "Put the measured value on the y-axis.",
+      "Click in each category column to build bars to the correct height."
+    ],
+    graph: {
+      kind: "bar",
+      categories: ["Fertilizer A", "Fertilizer B", "Fertilizer C", "Fertilizer D"],
+      values: [14, 19, 11, 16],
+      yMax: 20,
+      yStep: 5
+    }
+  },
+
+  line1: {
+    id: "line1",
+    title: "Dataset 2",
+    prompt: "Look at the data table. Which graph type fits best, and how should it be built?",
+    graphType: "Line Graph",
+    variables: ["Time (min)", "Water Temperature (°C)"],
+    xVar: "Time (min)",
+    yVar: "Water Temperature (°C)",
+    headers: ["Time (min)", "Water Temperature (°C)"],
+    rows: [
+      ["0", "90"],
+      ["2", "81"],
+      ["4", "73"],
+      ["6", "66"],
+      ["8", "60"]
+    ],
+    buildSteps: [
+      "Choose the best graph type.",
+      "Put the continuous variable on the x-axis.",
+      "Put the measured value on the y-axis.",
+      "Click near each correct point. When correct, the line will connect the points."
+    ],
+    graph: {
+      kind: "line",
+      points: [
+        { x: 0, y: 90 },
+        { x: 2, y: 81 },
+        { x: 4, y: 73 },
+        { x: 6, y: 66 },
+        { x: 8, y: 60 }
+      ],
+      xMin: 0,
+      xMax: 8,
+      xStep: 2,
+      yMin: 0,
+      yMax: 100,
+      yStep: 20
+    }
+  },
+
+  scatter1: {
+    id: "scatter1",
+    title: "Dataset 3",
+    prompt: "Look at the data table. Which graph type fits best, and how should it be built?",
+    graphType: "Scatter Plot",
+    variables: ["Ramp Height (cm)", "Distance Traveled (cm)"],
+    xVar: "Ramp Height (cm)",
+    yVar: "Distance Traveled (cm)",
+    headers: ["Ramp Height (cm)", "Distance Traveled (cm)"],
+    rows: [
+      ["10", "48"],
+      ["15", "70"],
+      ["20", "92"],
+      ["25", "113"],
+      ["30", "138"]
+    ],
+    buildSteps: [
+      "Choose the best graph type.",
+      "Put the first numerical variable on the x-axis.",
+      "Put the second numerical variable on the y-axis.",
+      "Click near each correct point. Scatter plot points are not connected."
+    ],
+    graph: {
+      kind: "scatter",
+      points: [
+        { x: 10, y: 48 },
+        { x: 15, y: 70 },
+        { x: 20, y: 92 },
+        { x: 25, y: 113 },
+        { x: 30, y: 138 }
+      ],
+      xMin: 0,
+      xMax: 30,
+      xStep: 5,
+      yMin: 0,
+      yMax: 150,
+      yStep: 30
+    }
+  }
+};
+
+const graphTypeOptions = ["Bar Graph", "Line Graph", "Scatter Plot"];
+
+const svg = document.getElementById("graphSvg");
+const datasetButtons = document.getElementById("datasetButtons");
+const datasetTitle = document.getElementById("datasetTitle");
+const datasetPrompt = document.getElementById("datasetPrompt");
+const dataTable = document.getElementById("dataTable");
+const graphTypeChoices = document.getElementById("graphTypeChoices");
+const xAxisChoices = document.getElementById("xAxisChoices");
+const yAxisChoices = document.getElementById("yAxisChoices");
+const feedback = document.getElementById("feedback");
+const howToList = document.getElementById("howToList");
+const checkGraphBtn = document.getElementById("checkGraphBtn");
+const resetGraphBtn = document.getElementById("resetGraphBtn");
+
+const svgNS = "http://www.w3.org/2000/svg";
+
+let currentKey = "bar1";
+let state = {};
+
+const plotArea = {
+  left: 90,
+  top: 35,
+  width: 520,
+  height: 280
+};
+
+function resetState() {
+  state = {
+    graphTypeChoice: null,
+    xChoice: null,
+    yChoice: null,
+    placedBars: {},
+    placedPoints: [],
+    graphCheckedCorrect: false
+  };
+}
+
+function setFeedback(message, type = "") {
+  feedback.textContent = message;
+  feedback.className = `feedback ${type}`.trim();
+}
+
+function initDatasetButtons() {
+  datasetButtons.innerHTML = "";
+  Object.values(datasets).forEach(ds => {
+    const btn = document.createElement("button");
+    btn.className = `dataset-btn ${ds.id === currentKey ? "active" : ""}`;
+    btn.textContent = ds.title;
+    btn.addEventListener("click", () => {
+      currentKey = ds.id;
+      loadDataset();
+    });
+    datasetButtons.appendChild(btn);
+  });
+}
+
+function renderTable(ds) {
+  dataTable.innerHTML = "";
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  ds.headers.forEach(header => {
+    const th = document.createElement("th");
+    th.textContent = header;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  dataTable.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  ds.rows.forEach(row => {
+    const tr = document.createElement("tr");
+    row.forEach(cell => {
+      const td = document.createElement("td");
+      td.textContent = cell;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  dataTable.appendChild(tbody);
+}
+
+function renderBuildSteps(ds) {
+  howToList.innerHTML = "";
+  ds.buildSteps.forEach(step => {
+    const li = document.createElement("li");
+    li.textContent = step;
+    howToList.appendChild(li);
+  });
+}
+
+function renderChoiceButtons(container, options, selectedValue, handler) {
+  container.innerHTML = "";
+  options.forEach(option => {
+    const btn = document.createElement("button");
+    btn.className = `choice-btn ${selectedValue === option ? "active" : ""}`;
+    btn.textContent = option;
+    btn.addEventListener("click", () => handler(option));
+    container.appendChild(btn);
+  });
+}
+
+function renderAllChoices(ds) {
+  renderChoiceButtons(graphTypeChoices, graphTypeOptions, state.graphTypeChoice, (choice) => {
+    state.graphTypeChoice = choice;
+    if (choice === ds.graphType) {
+      setFeedback("Correct graph type.", "good");
+    } else {
+      setFeedback("Not quite. Look again at the data table and what the graph needs to show.", "bad");
+    }
+    renderAllChoices(ds);
+  });
+
+  renderChoiceButtons(xAxisChoices, ds.variables, state.xChoice, (choice) => {
+    state.xChoice = choice;
+    if (choice === ds.xVar) {
+      setFeedback("Correct x-axis choice.", "good");
+    } else {
+      setFeedback("That is not the best x-axis choice for this dataset.", "bad");
+    }
+    renderAllChoices(ds);
+  });
+
+  renderChoiceButtons(yAxisChoices, ds.variables, state.yChoice, (choice) => {
+    state.yChoice = choice;
+    if (choice === ds.yVar) {
+      setFeedback("Correct y-axis choice.", "good");
+    } else {
+      setFeedback("That is not the best y-axis choice for this dataset.", "bad");
+    }
+    renderAllChoices(ds);
+  });
+}
+
+function choicesAreCorrect(ds) {
+  return (
+    state.graphTypeChoice === ds.graphType &&
+    state.xChoice === ds.xVar &&
+    state.yChoice === ds.yVar
+  );
+}
+
+function createSvgElement(tag, attrs = {}) {
+  const el = document.createElementNS(svgNS, tag);
+  Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
+  return el;
+}
+
+function clearSvg() {
+  while (svg.firstChild) {
+    svg.removeChild(svg.firstChild);
+  }
+}
+
+function drawText(x, y, text, size = 14, weight = "normal", fill = "#334155") {
+  const t = createSvgElement("text", {
+    x,
+    y,
+    fill,
+    "font-size": size,
+    "font-weight": weight,
+    "font-family": "Arial, Helvetica, sans-serif"
+  });
+  t.textContent = text;
+  svg.appendChild(t);
+  return t;
+}
+
+function drawBaseAxes(ds) {
+  clearSvg();
+
+  const bg = createSvgElement("rect", {
+    x: 0,
+    y: 0,
+    width: 700,
+    height: 420,
+    fill: "white"
+  });
+  svg.appendChild(bg);
+
+  // grid lines: no top line
+  const graph = ds.graph;
+  const yTicks = Math.floor((graph.yMax - (graph.yMin || 0)) / graph.yStep);
+
+  for (let i = 1; i < yTicks; i++) {
+    const y = plotArea.top + plotArea.height - (i / yTicks) * plotArea.height;
+    const line = createSvgElement("line", {
+      x1: plotArea.left,
+      y1: y,
+      x2: plotArea.left + plotArea.width,
+      y2: y,
+      stroke: "#e4ebf5",
+      "stroke-width": 1
+    });
+    svg.appendChild(line);
+  }
+
+  // axes
+  svg.appendChild(createSvgElement("line", {
+    x1: plotArea.left,
+    y1: plotArea.top,
+    x2: plotArea.left,
+    y2: plotArea.top + plotArea.height,
+    stroke: "#334155",
+    "stroke-width": 2
+  }));
+
+  svg.appendChild(createSvgElement("line", {
+    x1: plotArea.left,
+    y1: plotArea.top + plotArea.height,
+    x2: plotArea.left + plotArea.width,
+    y2: plotArea.top + plotArea.height,
+    stroke: "#334155",
+    "stroke-width": 2
+  }));
+
+  // y-axis tick labels
+  for (let value = graph.yMin || 0; value <= graph.yMax; value += graph.yStep) {
+    const y = valueToY(ds, value);
+    drawText(plotArea.left - 35, y + 5, String(value), 13, "bold");
+  }
+
+  // axis labels
+  drawText(plotArea.left + plotArea.width - 170, plotArea.top + plotArea.height + 35, ds.xVar, 14, "bold");
+  const yLabel = createSvgElement("text", {
+    x: 25,
+    y: plotArea.top + plotArea.height / 2 + 20,
+    fill: "#334155",
+    "font-size": 14,
+    "font-weight": "bold",
+    "font-family": "Arial, Helvetica, sans-serif",
+    transform: `rotate(-90 25 ${plotArea.top + plotArea.height / 2 + 20})`
+  });
+  yLabel.textContent = ds.yVar;
+  svg.appendChild(yLabel);
+}
+
+function valueToY(ds, value) {
+  const graph = ds.graph;
+  const yMin = graph.yMin || 0;
+  const proportion = (value - yMin) / (graph.yMax - yMin);
+  return plotArea.top + plotArea.height - proportion * plotArea.height;
+}
+
+function valueToX(ds, value) {
+  const graph = ds.graph;
+  const proportion = (value - graph.xMin) / (graph.xMax - graph.xMin);
+  return plotArea.left + proportion * plotArea.width;
+}
+
+function drawBarGraphSkeleton(ds) {
+  drawBaseAxes(ds);
+
+  const categories = ds.graph.categories;
+  const slotWidth = plotArea.width / categories.length;
+
+  categories.forEach((category, index) => {
+    const centerX = plotArea.left + slotWidth * index + slotWidth / 2;
+    drawText(centerX - 28, plotArea.top + plotArea.height + 20, category.replace("Fertilizer ", ""), 13, "bold");
+
+    // faint column guide
+    const rect = createSvgElement("rect", {
+      x: plotArea.left + slotWidth * index + 18,
+      y: plotArea.top,
+      width: slotWidth - 36,
+      height: plotArea.height,
+      fill: "rgba(239, 71, 111, 0.05)",
+      stroke: "rgba(239, 71, 111, 0.12)"
+    });
+    svg.appendChild(rect);
+  });
+
+  Object.entries(state.placedBars).forEach(([indexString, value]) => {
+    const index = Number(indexString);
+    const x = plotArea.left + slotWidth * index + 30;
+    const width = slotWidth - 60;
+    const y = valueToY(ds, value);
+    const height = plotArea.top + plotArea.height - y;
+
+    const bar = createSvgElement("rect", {
+      x,
+      y,
+      width,
+      height,
+      fill: "#ef476f"
+    });
+    svg.appendChild(bar);
+  });
+}
+
+function drawLineOrScatterSkeleton(ds) {
+  drawBaseAxes(ds);
+
+  const graph = ds.graph;
+
+  for (let value = graph.xMin; value <= graph.xMax; value += graph.xStep) {
+    const x = valueToX(ds, value);
+    drawText(x - 6, plotArea.top + plotArea.height + 20, String(value), 13, "bold");
+  }
+
+  state.placedPoints.forEach(point => {
+    const cx = valueToX(ds, point.x);
+    const cy = valueToY(ds, point.y);
+
+    const circle = createSvgElement("circle", {
+      cx,
+      cy,
+      r: 6,
+      fill: graph.kind === "line" ? "#6c63ff" : "#00bcd4"
+    });
+    svg.appendChild(circle);
+  });
+
+  if (graph.kind === "line" && state.graphCheckedCorrect) {
+    const sorted = [...state.placedPoints].sort((a, b) => a.x - b.x);
+    const pointsString = sorted.map(p => `${valueToX(ds, p.x)},${valueToY(ds, p.y)}`).join(" ");
+    const line = createSvgElement("polyline", {
+      points: pointsString,
+      fill: "none",
+      stroke: "#6c63ff",
+      "stroke-width": 3
+    });
+    svg.insertBefore(line, svg.querySelector("circle"));
+  }
+}
+
+function redrawGraph() {
+  const ds = datasets[currentKey];
+  if (ds.graph.kind === "bar") {
+    drawBarGraphSkeleton(ds);
+  } else {
+    drawLineOrScatterSkeleton(ds);
+  }
+}
+
+function loadDataset() {
+  const ds = datasets[currentKey];
+  resetState();
+  initDatasetButtons();
+  datasetTitle.textContent = ds.title;
+  datasetPrompt.textContent = ds.prompt;
+  renderTable(ds);
+  renderBuildSteps(ds);
+  renderAllChoices(ds);
+  redrawGraph();
+  setFeedback("Use the data table to decide the graph type and axes before building.", "");
+}
+
+function getClickCoordinates(evt) {
+  const rect = svg.getBoundingClientRect();
+  const scaleX = 700 / rect.width;
+  const scaleY = 420 / rect.height;
+  return {
+    x: (evt.clientX - rect.left) * scaleX,
+    y: (evt.clientY - rect.top) * scaleY
+  };
+}
+
+function insidePlotArea(x, y) {
+  return (
+    x >= plotArea.left &&
+    x <= plotArea.left + plotArea.width &&
+    y >= plotArea.top &&
+    y <= plotArea.top + plotArea.height
+  );
+}
+
+function handleBarClick(ds, x, y) {
+  const categories = ds.graph.categories;
+  const slotWidth = plotArea.width / categories.length;
+  const index = Math.floor((x - plotArea.left) / slotWidth);
+
+  if (index < 0 || index >= categories.length) return;
+
+  const proportion = (plotArea.top + plotArea.height - y) / plotArea.height;
+  let value = proportion * ds.graph.yMax;
+  value = Math.max(0, Math.min(ds.graph.yMax, Math.round(value)));
+
+  state.placedBars[index] = value;
+  redrawGraph();
+  setFeedback(`Bar placed for ${categories[index]}.`, "");
+}
+
+function handlePointClick(ds, x, y) {
+  const remaining = ds.graph.points.filter(
+    target => !state.placedPoints.some(p => p.x === target.x && p.y === target.y)
+  );
+
+  let bestTarget = null;
+  let bestDistance = Infinity;
+
+  remaining.forEach(target => {
+    const px = valueToX(ds, target.x);
+    const py = valueToY(ds, target.y);
+    const distance = Math.hypot(px - x, py - y);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestTarget = target;
+    }
+  });
+
+  if (bestTarget && bestDistance <= 22) {
+    state.placedPoints.push(bestTarget);
+    redrawGraph();
+    setFeedback(`Point added at (${bestTarget.x}, ${bestTarget.y}).`, "");
+  } else {
+    setFeedback("Click closer to a correct point on the graph.", "bad");
+  }
+}
+
+svg.addEventListener("click", (evt) => {
+  const ds = datasets[currentKey];
+
+  if (!choicesAreCorrect(ds)) {
+    setFeedback("Complete Steps 1–3 correctly before building the graph.", "bad");
+    return;
+  }
+
+  const { x, y } = getClickCoordinates(evt);
+  if (!insidePlotArea(x, y)) return;
+
+  if (ds.graph.kind === "bar") {
+    handleBarClick(ds, x, y);
+  } else {
+    handlePointClick(ds, x, y);
+  }
+});
+
+checkGraphBtn.addEventListener("click", () => {
+  const ds = datasets[currentKey];
+
+  if (!choicesAreCorrect(ds)) {
+    setFeedback("You need the correct graph type and axes before checking the graph.", "bad");
+    return;
+  }
+
+  if (ds.graph.kind === "bar") {
+    const correctValues = ds.graph.values;
+    const placedIndexes = Object.keys(state.placedBars).length;
+
+    if (placedIndexes !== correctValues.length) {
+      setFeedback("Build all bars before checking the graph.", "bad");
+      return;
+    }
+
+    const allCorrect = correctValues.every((value, index) => {
+      const placed = state.placedBars[index];
+      return placed !== undefined && Math.abs(placed - value) <= 1;
+    });
+
+    if (allCorrect) {
+      state.graphCheckedCorrect = true;
+      redrawGraph();
+      setFeedback("Nice work. Your bar graph is correct.", "good");
+    } else {
+      setFeedback("Some bar heights are off. Adjust the bars and try again.", "bad");
+    }
+  } else {
+    if (state.placedPoints.length !== ds.graph.points.length) {
+      setFeedback("Plot all points before checking the graph.", "bad");
+      return;
+    }
+
+    state.graphCheckedCorrect = true;
+    redrawGraph();
+
+    if (ds.graph.kind === "line") {
+      setFeedback("Nice work. Your line graph is correct.", "good");
+    } else {
+      setFeedback("Nice work. Your scatter plot is correct.", "good");
+    }
+  }
+});
+
+resetGraphBtn.addEventListener("click", () => {
+  state.placedBars = {};
+  state.placedPoints = [];
+  state.graphCheckedCorrect = false;
+  redrawGraph();
+  setFeedback("Graph reset. Build it again.", "");
+});
+
+loadDataset();
