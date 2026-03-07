@@ -20,6 +20,8 @@ const datasets = {
       "Put the measured value on the y-axis.",
       "Click in each category column to build bars to the correct height."
     ],
+    explanation:
+      "This is a bar graph because the x-axis shows categories: Fertilizer A, B, C, and D. The y-axis shows a measured value: average plant height in centimeters. Bar graphs are used to compare groups or categories.",
     graph: {
       kind: "bar",
       categories: ["Fertilizer A", "Fertilizer B", "Fertilizer C", "Fertilizer D"],
@@ -52,6 +54,8 @@ const datasets = {
       "Put the measured value on the y-axis.",
       "Click near each correct point. After plotting, each point will show its coordinates."
     ],
+    explanation:
+      "This is a line graph because time is a continuous variable on the x-axis, and water temperature changes over time. The plotted points are connected to show a trend or pattern of change.",
     graph: {
       kind: "line",
       points: [
@@ -92,6 +96,8 @@ const datasets = {
       "Put the second numerical variable on the y-axis.",
       "Click near each correct point. Each plotted point will show its coordinates."
     ],
+    explanation:
+      "This is a scatter plot because both variables are numerical. Ramp height and distance traveled are measured values, so plotting the points helps show whether a relationship exists between them.",
     graph: {
       kind: "scatter",
       points: [
@@ -125,6 +131,7 @@ const feedback = document.getElementById("feedback");
 const howToList = document.getElementById("howToList");
 const checkGraphBtn = document.getElementById("checkGraphBtn");
 const resetGraphBtn = document.getElementById("resetGraphBtn");
+const explanationText = document.getElementById("explanationText");
 
 const svgNS = "http://www.w3.org/2000/svg";
 
@@ -147,6 +154,14 @@ function resetState() {
     placedPoints: [],
     graphCheckedCorrect: false
   };
+}
+
+function resetExplanation() {
+  explanationText.textContent = "Check a completed graph to see an explanation here.";
+}
+
+function showExplanation(ds) {
+  explanationText.textContent = ds.explanation;
 }
 
 function setFeedback(message, type = "") {
@@ -494,7 +509,15 @@ function drawPlacedPoints(ds) {
     });
     svg.appendChild(circle);
 
-    drawText(cx + 10, cy - 10, `(${point.x}, ${point.y})`, 12, "bold", graph.kind === "line" ? "#6c63ff" : "#00bcd4", "start");
+    drawText(
+      cx + 10,
+      cy - 10,
+      `(${point.x}, ${point.y})`,
+      12,
+      "bold",
+      graph.kind === "line" ? "#6c63ff" : "#00bcd4",
+      "start"
+    );
   });
 }
 
@@ -519,12 +542,13 @@ function loadDataset() {
   const ds = datasets[currentKey];
   resetState();
   initDatasetButtons();
-  datasetTitle.textContent = ds.title;
-  datasetPrompt.textContent = ds.prompt;
   renderTable(ds);
   renderBuildSteps(ds);
   renderAllChoices(ds);
   redrawGraph();
+  resetExplanation();
+  datasetTitle.textContent = ds.title;
+  datasetPrompt.textContent = ds.prompt;
   setFeedback("Use the data table to decide the graph type first.", "");
 }
 
@@ -643,6 +667,7 @@ checkGraphBtn.addEventListener("click", () => {
     if (allCorrect) {
       state.graphCheckedCorrect = true;
       redrawGraph();
+      showExplanation(ds);
       setFeedback("Nice work. Your bar graph is correct.", "good");
     } else {
       setFeedback("Some bar heights are off. Adjust the bars and try again.", "bad");
@@ -655,6 +680,7 @@ checkGraphBtn.addEventListener("click", () => {
 
     state.graphCheckedCorrect = true;
     redrawGraph();
+    showExplanation(ds);
 
     if (ds.graph.kind === "line") {
       setFeedback("Nice work. Your line graph is correct.", "good");
@@ -669,6 +695,7 @@ resetGraphBtn.addEventListener("click", () => {
   state.placedPoints = [];
   state.graphCheckedCorrect = false;
   redrawGraph();
+  resetExplanation();
 
   if (graphTypeIsCorrect(datasets[currentKey])) {
     setFeedback("Graph reset. Build it again.", "");
