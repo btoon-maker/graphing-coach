@@ -23,7 +23,13 @@
     <main class="layout">
       <section class="panel left-panel">
         <h2>Choose a Dataset</h2>
-        <div id="datasetButtons" class="dataset-buttons"></div>
+
+        <div class="dataset-buttons" id="datasetControls">
+          <div id="datasetButtons" class="dataset-buttons"></div>
+          <button id="generateDatasetBtn" class="action-btn secondary" type="button">
+            Generate New Dataset
+          </button>
+        </div>
 
         <div class="card">
           <h3 id="datasetTitle">Dataset</h3>
@@ -63,8 +69,8 @@
           </p>
 
           <div class="graph-actions">
-            <button id="checkGraphBtn" class="action-btn">Check Graph</button>
-            <button id="resetGraphBtn" class="action-btn secondary">Reset Graph</button>
+            <button id="checkGraphBtn" class="action-btn" type="button">Check Graph</button>
+            <button id="resetGraphBtn" class="action-btn secondary" type="button">Reset Graph</button>
           </div>
 
           <div class="svg-wrap">
