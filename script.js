@@ -50,7 +50,7 @@ const datasets = {
       "Choose the best graph type.",
       "Put the continuous variable on the x-axis.",
       "Put the measured value on the y-axis.",
-      "Click near each correct point. When correct, the line will connect the points after you check the graph."
+      "Click near each correct point. After plotting, each point will show its coordinates."
     ],
     graph: {
       kind: "line",
@@ -90,7 +90,7 @@ const datasets = {
       "Choose the best graph type.",
       "Put the first numerical variable on the x-axis.",
       "Put the second numerical variable on the y-axis.",
-      "Click near each correct point. Scatter plot points are not connected."
+      "Click near each correct point. Each plotted point will show its coordinates."
     ],
     graph: {
       kind: "scatter",
@@ -236,6 +236,7 @@ function renderAllChoices(ds) {
     } else {
       setFeedback("That is not the best x-axis choice for this dataset.", "bad");
     }
+    redrawGraph();
     renderAllChoices(ds);
   });
 
@@ -246,6 +247,7 @@ function renderAllChoices(ds) {
     } else {
       setFeedback("That is not the best y-axis choice for this dataset.", "bad");
     }
+    redrawGraph();
     renderAllChoices(ds);
   });
 }
@@ -254,12 +256,12 @@ function graphTypeIsCorrect(ds) {
   return state.graphTypeChoice === ds.graphType;
 }
 
+function axesAreCorrect(ds) {
+  return state.xChoice === ds.xVar && state.yChoice === ds.yVar;
+}
+
 function choicesAreCorrect(ds) {
-  return (
-    state.graphTypeChoice === ds.graphType &&
-    state.xChoice === ds.xVar &&
-    state.yChoice === ds.yVar
-  );
+  return graphTypeIsCorrect(ds) && axesAreCorrect(ds);
 }
 
 function createSvgElement(tag, attrs = {}) {
@@ -315,7 +317,7 @@ function drawLockedPrompt() {
 
   drawText(350, 155, "Complete Step 1 First", 28, "bold", "#6c63ff", "middle");
   drawText(350, 195, "Choose the correct graph type to reveal the graph frame.", 18, "normal", "#4b5563", "middle");
-  drawText(350, 230, "The graph should not be built yet.", 18, "normal", "#4b5563", "middle");
+  drawText(350, 230, "Variable labels will appear after Steps 2 and 3 are correct.", 18, "normal", "#4b5563", "middle");
 }
 
 function valueToY(ds, value) {
@@ -382,20 +384,22 @@ function drawBaseAxes(ds) {
     drawText(plotArea.left - 16, y + 5, String(value), 13, "bold", "#334155", "end");
   }
 
-  drawText(plotArea.left + plotArea.width - 10, plotArea.top + plotArea.height + 35, ds.xVar, 14, "bold", "#334155", "end");
+  if (axesAreCorrect(ds)) {
+    drawText(plotArea.left + plotArea.width - 10, plotArea.top + plotArea.height + 35, ds.xVar, 14, "bold", "#334155", "end");
 
-  const yLabel = createSvgElement("text", {
-    x: 28,
-    y: plotArea.top + plotArea.height / 2 + 20,
-    fill: "#334155",
-    "font-size": 14,
-    "font-weight": "bold",
-    "font-family": "Arial, Helvetica, sans-serif",
-    transform: `rotate(-90 28 ${plotArea.top + plotArea.height / 2 + 20})`,
-    "text-anchor": "middle"
-  });
-  yLabel.textContent = ds.yVar;
-  svg.appendChild(yLabel);
+    const yLabel = createSvgElement("text", {
+      x: 28,
+      y: plotArea.top + plotArea.height / 2 + 20,
+      fill: "#334155",
+      "font-size": 14,
+      "font-weight": "bold",
+      "font-family": "Arial, Helvetica, sans-serif",
+      transform: `rotate(-90 28 ${plotArea.top + plotArea.height / 2 + 20})`,
+      "text-anchor": "middle"
+    });
+    yLabel.textContent = ds.yVar;
+    svg.appendChild(yLabel);
+  }
 }
 
 function drawBarFrame(ds) {
@@ -489,6 +493,8 @@ function drawPlacedPoints(ds) {
       fill: graph.kind === "line" ? "#6c63ff" : "#00bcd4"
     });
     svg.appendChild(circle);
+
+    drawText(cx + 10, cy - 10, `(${point.x}, ${point.y})`, 12, "bold", graph.kind === "line" ? "#6c63ff" : "#00bcd4", "start");
   });
 }
 
