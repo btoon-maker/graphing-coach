@@ -79,7 +79,7 @@ body {
 .layout {
   margin-top: 22px;
   display: grid;
-  grid-template-columns: 1fr 1.1fr;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
   gap: 22px;
 }
 
@@ -359,4 +359,17 @@ input:focus-visible,
 
 [hidden] {
   display: none !important;
+}
+
+/* Give the graph as much width as possible on small screens. */
+@media (max-width: 600px) {
+  .svg-wrap {
+    padding: 6px;
+    margin-left: -8px;
+    margin-right: -8px;
+  }
+
+  .card {
+    padding: 16px;
+  }
 }
