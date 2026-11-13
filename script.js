@@ -388,7 +388,7 @@ function buildLineChallenge(ds) {
         if (approxEqual(value, rate)) {
           return {
             correct: true,
-            message: `Correct. (${last.y} − ${first.y}) ÷ (${last.x} − ${first.x}) = ${formatNumber(rate)} °C/min. The negative sign shows the water was cooling. Because the line gets less steep over time, this is an average: the actual drop each minute was not constant.`
+            message: `Correct. (${last.y} − ${first.y}) ÷ (${last.x} − ${first.x}) = ${formatNumber(rate)} °C/min. The negative sign shows the water was cooling. Because the temperature changes by different amounts across the two-minute intervals, this represents the average rate of change rather than a constant rate.`
           };
         }
         if (approxEqual(value, -rate)) {
