@@ -56,7 +56,7 @@
 
         <div class="card">
           <h3>Feedback</h3>
-          <div id="feedback" class="feedback">Select a dataset to begin.</div>
+          <div id="feedback" class="feedback" role="status" aria-live="polite">Select a dataset to begin.</div>
         </div>
       </section>
 
@@ -65,7 +65,12 @@
           <h2>Interactive Graph Builder</h2>
           <p class="muted" id="graphInstructions">
             Complete Step 1 correctly to reveal the graph frame. Then complete Steps 2–3 correctly
-            to reveal the variable labels and build the graph.
+            to reveal the variable labels and build the graph. Place each point or bar yourself by
+            reading the scale. Nothing snaps to the answer.
+          </p>
+          <p class="muted keyboard-tip">
+            Keyboard: Tab to the graph, use the arrow keys to move (Shift + arrow moves one labeled step),
+            press Enter to place or remove, and Delete to remove.
           </p>
 
           <div class="graph-actions">
@@ -74,7 +79,25 @@
           </div>
 
           <div class="svg-wrap">
-            <svg id="graphSvg" viewBox="0 0 700 420" aria-label="Interactive graph area"></svg>
+            <svg id="graphSvg" viewBox="0 0 700 420" tabindex="0" role="application"
+              aria-label="Interactive graph area. Use the arrow keys to move the cursor and Enter to place or remove."
+              aria-describedby="graphInstructions"></svg>
+            <p id="graphStatus" class="sr-only" aria-live="polite"></p>
+          </div>
+
+          <div class="mini-card challenge-card" id="challengeCard" hidden>
+            <h4>Interpret Your Graph</h4>
+            <p class="muted challenge-progress" id="challengeProgress">Question 1 of 2</p>
+            <p class="challenge-prompt" id="challengePrompt" tabindex="-1"></p>
+            <div id="challengeChoices" class="choice-group"></div>
+            <form id="challengeNumeric" class="numeric-answer" hidden>
+              <label for="challengeInput" class="sr-only">Your answer</label>
+              <input id="challengeInput" type="text" inputmode="decimal" autocomplete="off" />
+              <span id="challengeUnit" class="muted"></span>
+              <button id="challengeSubmit" class="action-btn" type="submit">Check Answer</button>
+            </form>
+            <div id="challengeFeedback" class="feedback" role="status" aria-live="polite"></div>
+            <button id="challengeNextBtn" class="action-btn secondary" type="button" hidden>Next Question</button>
           </div>
 
           <div class="mini-card">
