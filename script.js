@@ -578,11 +578,15 @@ let currentKey = "bar1";
 let state = {};
 let pointId = 0;
 
+// Drawing space (matches the SVG viewBox). The plot fills most of it so learners have room to place points precisely.
+const VIEW_W = 760;
+const VIEW_H = 600;
+
 const plotArea = {
-  left: 90,
-  top: 35,
-  width: 520,
-  height: 280
+  left: 92,
+  top: 28,
+  width: 640,
+  height: 492
 };
 
 /* ---------- State & feedback ---------- */
@@ -813,13 +817,13 @@ function drawText(x, y, text, size = 14, weight = "normal", fill = "#334155", an
 function drawLockedPrompt() {
   clearSvg();
 
-  svg.appendChild(createSvgElement("rect", { x: 0, y: 0, width: 700, height: 420, fill: "white" }));
+  svg.appendChild(createSvgElement("rect", { x: 0, y: 0, width: VIEW_W, height: VIEW_H, fill: "white" }));
   svg.appendChild(
     createSvgElement("rect", {
-      x: 95,
-      y: 95,
-      width: 510,
-      height: 190,
+      x: VIEW_W / 2 - 280,
+      y: VIEW_H / 2 - 110,
+      width: 560,
+      height: 200,
       rx: 22,
       fill: "#f7f9ff",
       stroke: "#dbe6f2",
@@ -827,9 +831,9 @@ function drawLockedPrompt() {
     })
   );
 
-  drawText(350, 155, "Complete Step 1 First", 28, "bold", "#6c63ff", "middle");
-  drawText(350, 195, "Choose the correct graph type to reveal the graph frame.", 18, "normal", "#4b5563", "middle");
-  drawText(350, 230, "Variable labels will appear after Steps 2 and 3 are correct.", 18, "normal", "#4b5563", "middle");
+  drawText(VIEW_W / 2, VIEW_H / 2 - 45, "Complete Step 1 First", 30, "bold", "#6c63ff", "middle");
+  drawText(VIEW_W / 2, VIEW_H / 2 - 5, "Choose the correct graph type to reveal the graph frame.", 18, "normal", "#4b5563", "middle");
+  drawText(VIEW_W / 2, VIEW_H / 2 + 30, "Variable labels will appear after Steps 2 and 3 are correct.", 18, "normal", "#4b5563", "middle");
 }
 
 function valueToY(ds, value) {
@@ -897,7 +901,7 @@ function drawGridlines(ds) {
 
 function drawBaseAxes(ds) {
   clearSvg();
-  svg.appendChild(createSvgElement("rect", { x: 0, y: 0, width: 700, height: 420, fill: "white" }));
+  svg.appendChild(createSvgElement("rect", { x: 0, y: 0, width: VIEW_W, height: VIEW_H, fill: "white" }));
 
   const graph = ds.graph;
   drawGridlines(ds);
@@ -926,15 +930,15 @@ function drawBaseAxes(ds) {
 
   forEachStep(graph.yMin || 0, graph.yMax, graph.yStep, value => {
     const y = valueToY(ds, value);
-    drawText(plotArea.left - 16, y + 5, String(value), 13, "bold", "#334155", "end");
+    drawText(plotArea.left - 12, y + 6, String(value), 17, "bold", "#334155", "end");
   });
 
   if (axesAreCorrect(ds)) {
     drawText(
       plotArea.left + plotArea.width - 10,
-      plotArea.top + plotArea.height + 35,
+      plotArea.top + plotArea.height + 56,
       ds.xVar,
-      14,
+      18,
       "bold",
       "#334155",
       "end"
@@ -942,12 +946,12 @@ function drawBaseAxes(ds) {
 
     const yLabel = createSvgElement("text", {
       x: 28,
-      y: plotArea.top + plotArea.height / 2 + 20,
+      y: plotArea.top + plotArea.height / 2,
       fill: "#334155",
-      "font-size": 14,
+      "font-size": 18,
       "font-weight": "bold",
       "font-family": "Arial, Helvetica, sans-serif",
-      transform: `rotate(-90 28 ${plotArea.top + plotArea.height / 2 + 20})`,
+      transform: `rotate(-90 28 ${plotArea.top + plotArea.height / 2})`,
       "text-anchor": "middle"
     });
     yLabel.textContent = ds.yVar;
@@ -966,9 +970,9 @@ function drawBarFrame(ds) {
 
     drawText(
       centerX,
-      plotArea.top + plotArea.height + 20,
+      plotArea.top + plotArea.height + 26,
       category.replace("Fertilizer ", ""),
-      13,
+      18,
       "bold",
       "#334155",
       "middle"
@@ -1019,7 +1023,7 @@ function drawPlacedBars(ds) {
 
     // Values appear only once the graph is correct, so learners must read the scale themselves.
     if (state.graphCheckedCorrect) {
-      drawText(x + width / 2, y - 8, String(value), 14, "bold", "#ef476f", "middle");
+      drawText(x + width / 2, y - 10, String(value), 18, "bold", "#ef476f", "middle");
     }
   });
 }
@@ -1030,7 +1034,7 @@ function drawLineOrScatterFrame(ds) {
   const graph = ds.graph;
   forEachStep(graph.xMin, graph.xMax, graph.xStep, value => {
     const x = valueToX(ds, value);
-    drawText(x, plotArea.top + plotArea.height + 20, String(value), 13, "bold", "#334155", "middle");
+    drawText(x, plotArea.top + plotArea.height + 26, String(value), 17, "bold", "#334155", "middle");
   });
 }
 
@@ -1071,7 +1075,7 @@ function drawPlacedPoints(ds) {
     svg.appendChild(createSvgElement("circle", { cx, cy, r: 6, fill: color }));
 
     if (state.graphCheckedCorrect && graph.kind === "line") {
-      drawText(cx + 10, cy - 10, `(${point.x}, ${point.y})`, 12, "bold", color, "start");
+      drawText(cx + 10, cy - 12, `(${point.x}, ${point.y})`, 15, "bold", color, "start");
     }
   });
 }
@@ -1195,8 +1199,8 @@ function regenerateCurrentDataset() {
 
 function getClickCoordinates(evt) {
   const rect = svg.getBoundingClientRect();
-  const scaleX = 700 / rect.width;
-  const scaleY = 420 / rect.height;
+  const scaleX = VIEW_W / rect.width;
+  const scaleY = VIEW_H / rect.height;
   return {
     x: (evt.clientX - rect.left) * scaleX,
     y: (evt.clientY - rect.top) * scaleY
